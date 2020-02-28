@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<head>
+<title>Pyramid</title>
+<script src="three.min.js"></script>
+
+<!-- Modified from the MeshFaceMaterial.html example in our textbook
+    (Introduction to Computer Graphics) by David J. Eck -->
+
+<script>
+    var scene, camera, renderer; // Three.js rendering basics.
+
+    var canvas; // The canvas on which the image is rendered.
+
+    var cube;
+
+    var pyramid;
+
+    var plane;
+
+    var track = 0;
+
+    // Create the scene. This function is called once, as soon as the page loads.
+    // The renderer has already been created before this function is called.
+    function createWorld() {
+
+        renderer.setClearColor(0); // Set background color (0, or 0x000000, is black).
+        scene = new THREE.Scene(); // Create a new scene which we can add objects to.
+
+        // create a camera, sitting on the positive z-axis.  The camera is not part of the scene.
+        camera = new THREE.PerspectiveCamera(5, (canvas.width/canvas.height), 1, 30);
+        camera.position.z = 30;
+
+        // create some lights and add them to the scene.
+        // dim light shining from above
+        scene.add( new THREE.DirectionalLight( 0xffffff, 0.4 ) );
+
+        // a light to shine in the direction the camera faces
+        var viewpointLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
+        viewpointLight.position.set(0,0,1);  // shines down the z-axis
+        scene.add(viewpointLight);
+
+        plane();
+
+        for (i=0; i<2; i++) {
+          var randPyrX = (Math.random()*3) - 1
+          var randPyrY = (Math.random()*1) - 1
+          var randPyrZ = (Math.random()*1) - 1
+          pyramidFunc(randPyrX, randPyrY, 0, 1);
+        }
+
+        for (i=0; i<2; i++) {
+          var randCubX = Math.random()*3 - 1;
+          var randCubY = Math.random()*1 - 1;
+          var randCubZ = Math.random()*1 - 1;
+          cubeFunc(randCubX, 0, 0, 1);
+        }
+
+
+    }
+
+    function cubeFunc(cx, cy, cz, height) {
+
+        var cubeGeom = new THREE.Geometry();
+
+        cubeGeom.vertices = [
+            new THREE.Vector3(cx-.25, cy-.25, cz),  // vertex number 2
+            new THREE.Vector3(cx-.25, cy+.75, cz),  // vertex number 3
+            new THREE.Vector3(cx+.25, cy+.75, cz),  // vertex number 0
+            new THREE.Vector3(cx+.25, cy-.25, cz),  // vertex number 1
+            new THREE.Vector3(cx-.25, cy-.25, height),  // vertex number 6
+            new THREE.Vector3(cx-.25, cy+.75, height),  // vertex number 7
+            new THREE.Vector3(cx+.25, cy+.75, height),  // vertex number 4
+            new THREE.Vector3(cx+.25, cy-.25, height)  // vertex number 5
+        ];
+
+        cubeGeom.faces = [
+            new THREE.Face3(2, 3, 0),
+            new THREE.Face3(0, 1, 2),
+            new THREE.Face3(4, 5, 1),
+            new THREE.Face3(0, 4, 1),
+            new THREE.Face3(2, 6, 7),
+            new THREE.Face3(2, 7, 3),
+            new THREE.Face3(4, 0, 3),
+            new THREE.Face3(3, 7, 4),
+            new THREE.Face3(1, 2, 6),
+            new THREE.Face3(1, 6, 5),
+            new THREE.Face3(4, 7, 6),
+            new THREE.Face3(4, 6, 5)
+        ];
+
+        cubeGeom.computeFaceNormals();
+
+        cubeGeom.faces[0].materialIndex = 0;
+        for (var i = 1; i <= 5; i++) {
+          cubeGeom.faces[i].materialIndex = i-1;
+        }
+
+        var cubeFaceMaterial = [
+            new THREE.MeshLambertMaterial( { color: 0xffffff, flatShading: true } ),
+            new THREE.MeshLambertMaterial( { color: 0x99ffff, flatShading: true } ),
+            new THREE.MeshLambertMaterial( { color: 0xff99ff, flatShading: true } ),
+            new THREE.MeshLambertMaterial( { color: 0xffff99, flatShading: true } ),
+            new THREE.MeshLambertMaterial( { color: 0xff9999, flatShading: true } ),
+            new THREE.MeshLambertMaterial( { color: 0xfffff9, flatShading: true } ),
+            new THREE.MeshLambertMaterial( { color: 0x9fffff, flatShading: true } ),
+            new THREE.MeshLambertMaterial( { color: 0xff9fff, flatShading: true } )
+        ];
+
+        cube = new THREE.Mesh(cubeGeom, cubeFaceMaterial);
+
+        cube.rotation.x = -.1;
+        cube.position.y = -.4
+        scene.add(cube);
+
+    }
+
+    function pyramidFunc(cx, cy, cz, height) {
+
+        // set up the geometry for our pyramid
+        var pyramidGeom = new THREE.Geometry();
+
+        pyramidGeom.vertices = [  // array of Vector3 giving vertex coordinates
+            new THREE.Vector3(cx+.75, cy+.25, cz),  // vertex number 0
+            new THREE.Vector3(cx+.75, cy-.25, cz),  // vertex number 1
+            new THREE.Vector3(cx-.75, cy-.25, cz),  // vertex number 2
+            new THREE.Vector3(cx-.75, cy+.25, cz),  // vertex number 3
+            new THREE.Vector3(cx, cy, height)   // vertex number 4
+        ];
+
+        pyramidGeom.faces = [  // array of Face3 giving the triangular faces
+            new THREE.Face3(0, 1, 2),  // one half of the bottom face
+            new THREE.Face3(2, 3, 0),  // second half of the bottom face
+            new THREE.Face3(0, 3, 4),  // remaining faces are the four sides
+            new THREE.Face3(3, 2, 4),
+            new THREE.Face3(2, 1, 4),
+            new THREE.Face3(1, 0, 4)
+        ];
+
+        // compute normals so we know which way is facing "out"
+        pyramidGeom.computeFaceNormals();
+
+        // map the faces to materials
+        pyramidGeom.faces[0].materialIndex = 0;
+        for (var i = 1; i <= 5; i++) {
+            pyramidGeom.faces[i].materialIndex = i-1;
+        }
+
+        // Creates a material for the pyramid that is "matte" not "shiny".
+        var pyramidFaceMaterial = [
+            new THREE.MeshLambertMaterial( { color: 0xffffff, flatShading: true } ),
+            new THREE.MeshLambertMaterial( { color: 0x99ffff, flatShading: true } ),
+            new THREE.MeshLambertMaterial( { color: 0xff99ff, flatShading: true } ),
+            new THREE.MeshLambertMaterial( { color: 0xffff99, flatShading: true } ),
+            new THREE.MeshLambertMaterial( { color: 0xff9999, flatShading: true } )
+        ];
+
+        // Create the pyramid using the geometry and materials we've set up.
+        pyramid = new THREE.Mesh( pyramidGeom, pyramidFaceMaterial );
+
+        pyramid.rotation.x = -1.57;
+        pyramid.position.y = -.5
+
+        scene.add(pyramid);
+    }
+
+    function plane() {
+        // arguments are width along the x-axis, then width along y-axis
+        var geometry = new THREE.PlaneGeometry( 5, 5 );
+        var material = new THREE.MeshBasicMaterial({color: 0xffff00, side: THREE.DoubleSide});
+        plane = new THREE.Mesh( geometry, material );
+        plane.position.y = -.5
+        plane.rotation.set(-1.55,0,0);
+
+        scene.add( plane );
+    }
+
+    // Render the scene. This is called for each frame of the animation.
+    function render() {
+
+        requestAnimationFrame(render);
+
+        camera.position.z -= 0.01;
+
+        var random = Math.floor(Math.random() * 3);
+
+        if (random == 0) { // this should be when we complete one full circle
+          camera.position.x += 0.001;
+          camera.rotation.y += 0.0001;
+        } else if (random == 1) {
+          camera.position.x -= 0.001;
+          camera.rotation.y -= 0.0001;
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    //----------------------------------------------------------------------------------
+
+    // The init() function is called by the onload event when the document has loaded.
+    function init() {
+        try {
+            canvas = document.getElementById("glcanvas");
+            renderer = new THREE.WebGLRenderer( { canvas: canvas, antialias: true} );
+        }
+        catch (e) {
+            document.getElementById("canvas-holder").innerHTML = "<h3><b>WebGL is not available.</b><h3>";
+            return;
+        }
+
+        // create world and render scene
+        createWorld();
+        render();
+    }
+
+</script>
+
+</head>
+<body onload="init()">
+<div id="canvas-holder">
+    <canvas id="glcanvas" width="600" height="300"></canvas>
+</div>
+</body>
+</html>
